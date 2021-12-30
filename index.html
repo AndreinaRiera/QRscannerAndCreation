@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QR and BARCODE generator and scanner</title>
+
+    <link href="https://fonts.googleapis.com/css2?family=Material+Icons" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" />
+
+
+    <!-- Almacenar la libreria de manera local -->
+    <script src="https://cozmo.github.io/jsQR/jsQR.js"></script>
+</head>
+
+<body>
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&display=swap');
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html,
+        body {
+            background-color: rgb(252, 252, 252);
+        }
+
+        section {
+            margin-top: 200px;
+            padding: 20px;
+        }
+
+        .background_primary {
+            background: rgb(60, 129, 208);
+            background: linear-gradient(90deg, rgba(60, 129, 208, 1) 0%, rgba(109, 187, 226, 1) 100%);
+        }
+
+        .background_primary_inverse {
+            background: rgba(60, 129, 208, 1);
+            background: linear-gradient(90deg, rgba(109, 187, 226, 1) 0%, rgba(60, 129, 208, 1) 100%);
+        }
+
+        header {
+            padding-bottom: 400px;
+            margin-bottom: -400px;
+            border-radius: 0% 0% 50% 50% / 82% 82% 17% 17%;
+        }
+
+        .color_primary {
+            color: rgb(60, 129, 208);
+            ;
+        }
+
+        .dtsp-searchPane {
+            width: calc(100% / 4);
+            padding: 0 5px;
+        }
+
+        .h1 {
+            font-family: 'Bebas Neue', cursive;
+        }
+
+        #data_address_info {
+            font-size: 12px;
+        }
+
+        .ultrasmall {
+            font-size: 10px;
+        }
+
+
+        #mapLeaflet,
+        #gmap_canvas {
+            width: 100%;
+            height: 500px;
+        }
+
+        #mapLeaflet .search {
+            position: absolute;
+            right: 10px;
+            top: 10px;
+            z-index: 401;
+            width: 100%;
+            max-width: 350px;
+        }
+
+        label {
+            margin-bottom: 5px;
+            margin-top: 5px;
+            color: #353535;
+            font-size: 13px;
+        }
+
+        #canvas {
+            width: 100%;
+        }
+
+        #start {
+            height: 500px;
+        }
+    </style>
+
+    <header class="container-fluid  background_primary ">
+        <div class="row">
+            <div class="col mt-4 ">
+                <p class="h1 text-center text-uppercase d-none d-md-block">Where you are it matters, show it on maps!
+                </p>
+
+                <nav class="navbar navbar-expand-md navbar-dark pb-4 background_primary">
+                    <div class="container p-0">
+                        <a class="navbar-brand text-uppercase h1 d-block d-md-none ms-1 ms-md-3 mt-1" href="#"><small>
+                                Show it on maps where you are!</small></a>
+                        <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
+                            data-bs-target="#navbarNavAltMarkup" aria-controls="navbarNavAltMarkup"
+                            aria-expanded="false" aria-label="Toggle navigation">
+                            <span class="navbar-toggler-icon"></span>
+                        </button>
+                        <div class="collapse navbar-collapse " id="navbarNavAltMarkup">
+                            <div class="navbar-nav text-center mx-md-auto">
+                                <a class="nav-link  text-white go_to" href="#example">QR code scan</a>
+                                <a class="nav-link  text-white go_to" href="#creation">QR code creation</a>
+                                <a class="nav-link  text-white go_to" href="#aplication">Applications</a>
+                                <a class="nav-link  text-white go_to" target="_blank" rel="noopener noreferrer"
+                                    href="http://andreinariera.com/">About me</a>
+                                <a class="nav-link  text-white go_to" href="#contact">Contacts</a>
+                            </div>
+                        </div>
+                    </div>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <div class="container animate__animated animate__fadeInDown animate__slow">
+        <div class="row" id="example">
+            <div class="col mb-4 mb-lg-0">
+                <div class="card shadow">
+                    <canvas id="canvas" hidden></canvas>
+
+                    <div class="row pt-5 align-middle" id="start">
+                        <div class="col-12 text-center mt-5 pt-5">
+                            <p>
+                                <h5>Would you like to scan a QR code in your web applications? It is very easy to
+                                    implement!
+                                    Test it</h5>
+                            </p>
+
+                            <button class="btn btn-success" onclick="innerScannerQR()"> Activate camera to scan QR
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-12 col-md-4" id="data_address">
+                <div class="card px-3 py-2 shadow">
+                    <h5 class="fw-bold m-0">Your QR information:</h5>
+
+                    <p id="loadingMessage">🎥 Unable to access video stream (please make sure you have a webcam
+                        enabled)</p>
+                    <p id="outputMessage"></p>
+
+                    <p id="output">
+                        <div><b>Data:</b> <span id="outputData"></span></div>
+                        <div><b>Is link: <span id="isLink"></span></b></div>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+
+    <section class="container">
+        <div class="row animate__animated animate__fadeIn wow " id="creation">
+            <div class="col-md-8 offset-md-2 text-center">
+                <p class="h2 color_primary">Show the location of your business for free <br> with google maps</p>
+
+                <p>Have you seen the demonstration example above? It's amazing how useful QR codes are. And completely
+                    free!</p>
+                <p>With the powerful programming language Javascript, and various libraries, I can integrate custom
+                    tools to create and read QR and barcode codes on any website.</p>
+
+            </div>
+        </div>
+    </section>
+
+
+
+
+    <section class="container">
+        <div class="row  animate__animated animate__fadeIn wow " id="aplication">
+            <div class="col-md-8 offset-md-2 text-center">
+                <p class="h2 color_primary">would you like to implement QR codes? </p>
+                <p>Would you like to give your clients or users the possibility to create and scan QR codes?</p>
+                <p>I can create a website for you, and implement interactive and dynamic QR code scanners and readers,
+                    with completely
+                    personalized information. Adapted to all the requirements and style of your project or business.</p>
+
+                <a href="mailto:andreinariera96@hotmail.com" class="btn btn-success">I want to contact you!</a>
+            </div>
+        </div>
+    </section>
+
+
+    <section class="background_primary_inverse" id="contact">
+        <div class="container">
+            <div class="row  animate__animated animate__fadeIn wow  py-4">
+                <div class="col">
+                    <p class="h5 text-white">Hello, nice to meet you!</p>
+                    <p>My name is Andreina Riera. I am developer of pages and web applications and I would love to
+                        develop your project!</p>
+
+                    <p class="mt-1"> You can see my portfolio online from <a href="https://andreinariera.com/"
+                            target="_blank" rel="noopener noreferrer">andreinariera.com/</a> and also, you can find
+                        me at <a href="https://www.upwork.com/o/profiles/users/~0112fedee4e4ef5343/" target="_blank"
+                            rel="noopener noreferrer">upwork.com/</a> or contact me by <a
+                            href="mailto:andreinariera96@hotmail.com">email</a></p>
+                </div>
+                <div class="col text-right pt-4">
+                    <div class="row">
+                        <div class="col"></div>
+                        <div class="col-auto">
+                            <a href="mailto:andreinariera96@hotmail.com" class="link-light">
+                                <span class="material-icons" style="font-size: 110px;">
+                                    forward_to_inbox
+                                </span>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer class="bg-dark  text-white p-4">
+        <div class="container">
+            <div class="row">
+                <div class="col text-center">
+                    Website developed with love by Andreina R. on Dicember 30, 2021
+                </div>
+            </div>
+        </div>
+    </footer>
+
+
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous">
+    </script>
+
+
+
+    <script>
+        var video = document.createElement("video");
+        var canvasElement = document.getElementById("canvas");
+        var canvas = canvasElement.getContext("2d");
+        var loadingMessage = document.getElementById("loadingMessage");
+        var outputContainer = document.getElementById("output");
+        var outputMessage = document.getElementById("outputMessage");
+        var outputData = document.getElementById("outputData");
+        var isLink = document.getElementById("isLink");
+
+        function innerScannerQR() {
+
+            document.getElementById("start").hidden = true;
+            canvasElement.hidden = false;
+
+            function drawLine(begin, end, color) {
+                canvas.beginPath();
+                canvas.moveTo(begin.x, begin.y);
+                canvas.lineTo(end.x, end.y);
+                canvas.lineWidth = 4;
+                canvas.strokeStyle = color;
+                canvas.stroke();
+            }
+
+            navigator.mediaDevices.getUserMedia({
+                video: {
+                    facingMode: "environment"
+                }
+            }).then(function (stream) {
+                video.srcObject = stream;
+                video.setAttribute("playsinline", true);
+                video.play();
+                requestAnimationFrame(tick);
+            });
+
+            var currentCodeData = "";
+
+            function tick() {
+                loadingMessage.innerText = "⌛ Loading video..."
+                if (video.readyState === video.HAVE_ENOUGH_DATA) {
+                    canvasElement.height = video.videoHeight;
+                    canvasElement.width = video.videoWidth;
+                    canvas.drawImage(video, 0, 0, canvasElement.width, canvasElement.height);
+                    var imageData = canvas.getImageData(0, 0, canvasElement.width, canvasElement.height);
+                    var code = jsQR(imageData.data, imageData.width, imageData.height, {
+                        inversionAttempts: "dontInvert",
+                    });
+                    if (code) {
+                        drawLine(code.location.topLeftCorner, code.location.topRightCorner, "#FF3B58");
+                        drawLine(code.location.topRightCorner, code.location.bottomRightCorner, "#FF3B58");
+                        drawLine(code.location.bottomRightCorner, code.location.bottomLeftCorner, "#FF3B58");
+                        drawLine(code.location.bottomLeftCorner, code.location.topLeftCorner, "#FF3B58");
+
+                        if (currentCodeData !== code.data) {
+                            loadingMessage.hidden = true;
+
+                            showData(code.data);
+                            currentCodeData = code.data;
+                        }
+
+                    } else {}
+                }
+                requestAnimationFrame(tick);
+            }
+
+            function showData(data) {
+                outputData.innerText = data;
+
+                if (startsWith(data, ['https://', 'http://', 'www.'])) {
+                    var a = document.createElement("a");
+                    a.setAttribute("target", "_blank");
+                    a.setAttribute("rel", "noopener");
+
+                    a.href = data;
+
+                    a.click();
+
+                    isLink.innerText =
+                        "the QR contains a link. It will open in a new tab (Unless your browser blocks the redirect)";
+                } else {
+                    isLink.innerText = "the QR does not contain a link";
+                }
+            }
+        }
+
+        function startsWith(str, arr) {
+            str = str.trim();
+            arr = Array.isArray(arr) ? arr : [arr];
+
+            arr.forEach(element => {
+                if (str.startsWith(element)) {
+                    return true;
+                }
+            });
+
+            for (let i = 0; i < arr.length; i++) {
+                if (str.startsWith(arr[i])) {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+    </script>
+
+</body>
+
+</html>
